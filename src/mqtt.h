@@ -16,6 +16,8 @@ private:
     void subscribe();
     void messageArrived(char *p_topic, byte *p_payload, unsigned int p_length);
 
+    void sendMQTTDiscoveryConfig();
+
 public:
     explicit MQTT(PubSubClient &client);
     void init(const char *mqtt_domain, uint16_t mqtt_port);

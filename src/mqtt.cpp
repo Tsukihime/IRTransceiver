@@ -75,6 +75,40 @@ void MQTT::sendIRRawData(const String &data) {
     client.publish(topic.c_str(), data.c_str());
 }
 
+void MQTT::sendMQTTDiscoveryConfig() {
+    String cmd_topic = Config::getMQTTTopicPrefix() + aircon_commands_prefix;
+    String state_topic = Config::getMQTTTopicPrefix() + aircon_state_prefix;
+    String discovery_topic = "homeassistant/climate/avex_aircon/config";
+    String message = R"(
+{
+"device": {
+ "identifiers": [")" + Config::getDeviceId() + R"("],
+ "name": "Infrared Transceiver",
+ "manufacturer": "Tsukihime",
+ "model": "ESP8266-IRTransceiver",
+ "sw_version": "0.9"
+},
+"unique_id": "CH-AC07CHVITA-0417-P4-S0051",
+"icon": "mdi:air-conditioner",
+"name": "AVEX AC-07CH Vita",
+"modes": ["off", "auto", "cool", "heat", "dry", "fan_only"],
+"fan_modes": ["auto", "low", "medium", "high"],
+"swing_modes": ["on", "off"],
+"power_command_topic": ")"       + cmd_topic + R"(power",
+"mode_command_topic": ")"        + cmd_topic + R"(mode",
+"mode_state_topic": ")"        + state_topic + R"(mode",
+"temperature_command_topic": ")" + cmd_topic + R"(temp",
+"temperature_state_topic": ")" + state_topic + R"(temp",
+"fan_mode_command_topic": ")"    + cmd_topic + R"(fanspeed",
+"fan_mode_state_topic": ")"    + state_topic + R"(fanspeed",
+"swing_mode_command_topic": ")"  + cmd_topic + R"(swing",
+"swing_mode_state_topic": ")"  + state_topic + R"(swing",
+"current_temperature_topic": "home/Meteostation/temperature",
+"min_temp": 16, "max_temp": 32, "temp_step": 1, "retain": false
+})";
+    client.publish(discovery_topic.c_str(), message.c_str(), true);
+}
+
 void MQTT::disconnect() {
     Serial.println("INFO: Closing the MQTT connection");
     client.disconnect();
@@ -86,6 +120,7 @@ void MQTT::reconnect() {
         if (client.connect(Config::getDeviceName().c_str(), "", "")) {
             Serial.println("INFO: connected");
             subscribe();
+            sendMQTTDiscoveryConfig();
         } else {
             Serial.print("ERROR: failed, rc=");
             Serial.print(client.state());

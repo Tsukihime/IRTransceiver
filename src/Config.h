@@ -12,6 +12,10 @@ namespace Config {
         return DEVICE_NAME;// + "_" +  String(ESP.getChipId(), HEX);
     }
 
+    static String getDeviceId() {
+        return String(ESP.getChipId(), HEX);
+    }
+
     static String getMQTTTopicPrefix() {
         return MQTT_PARENT_TOPIC + "/" + getDeviceName() + "/";
     }
