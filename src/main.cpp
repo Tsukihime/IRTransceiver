@@ -6,6 +6,8 @@
 #include <IRrecv.h>
 #include <IRsend.h>
 #include <Ticker.h>
+#include <OneWire.h>
+#include <DallasTemperature.h>
 
 #include "mqtt.h"
 #include "EEPROMSettings.h"
@@ -27,6 +29,53 @@ PubSubClient mqttClient(wifiClient);
 MQTT mqtt(mqttClient);
 AVEX_HVAC_IR hvac(irsend, mqtt);
 IRSender irsender(irsend, irrecv, mqtt);
+
+const uint8_t ONE_WIRE_BUS = 13;
+OneWire oneWire(ONE_WIRE_BUS);
+DallasTemperature sensors(&oneWire);
+DeviceAddress thermometerAddress;
+
+void initSensor() {
+    sensors.begin();
+    sensors.setWaitForConversion(false);
+    if (sensors.getAddress(thermometerAddress, 0)) {
+        if (sensors.getResolution() != 12) {
+            sensors.setResolution(thermometerAddress, 12);
+        }
+    } else {
+        Serial.println("Unable to find address for Device 0 [ds18b20]");
+    }
+}
+
+float requestTemp() {
+    sensors.requestTemperatures();
+}
+
+float getCurrentTemp() {
+    float temp = sensors.getTempC(thermometerAddress);
+    bool correctTemp = (temp >= -55 && temp <= 125);  // -55 ... +125 °C.
+    if (!correctTemp) {
+        Serial.println("ERROR: Failed to read from ds18b20 sensor!");
+        initSensor();
+        return 0;
+    }
+    return temp;
+}
+
+void updateState() {
+    static uint8_t interval = 0;
+    switch (interval) {
+        case 0: requestTemp();
+                break;
+
+        case 1: hvac.setCurrentTemp(getCurrentTemp());
+                hvac.sendStateMQTT();
+                break;
+
+        default :;
+    }
+    if(++interval >= 60) interval = 0;
+}
 
 void setup() {
     Serial.begin(115200);
@@ -68,13 +117,8 @@ void setup() {
     ArduinoOTA.begin();
     irrecv.enableIRIn();
     irsend.begin();
-    ticker.attach(60, []() {
-        hvac.sendStateMQTT();
-    });
-
-//    digitalWrite(IR_LED, HIGH);
-//    delay(7000);
-//    digitalWrite(IR_LED, LOW);
+    initSensor();
+    ticker.attach(1, updateState);
 }
 
 void loop() {

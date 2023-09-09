@@ -7,6 +7,7 @@ AVEX_HVAC_IR::AVEX_HVAC_IR(IRsend &irsend, MQTT &mqtt) : irsend(irsend), mqtt(mq
     h_mode = HVAC_Mode::Automatic;
     fan_mode = HVAC_FAN_Mode::Automatic;
     temperature = 25;
+    current_temp = 0;
     mqtt.setACCommandCallback([this](String &command, String &argument) {
         this->processACCommand(command, argument);
     });
@@ -126,6 +127,14 @@ String fanModeToStr(uint8_t mode) {
     }
 }
 
+void AVEX_HVAC_IR::setCurrentTemp(float temperature) {
+    current_temp = temperature;
+}
+
+float AVEX_HVAC_IR::getCurrentTemp() {
+    return current_temp;
+}
+
 void AVEX_HVAC_IR::sendStateMQTT() {
     String mode = power ? modeToStr(h_mode) : "off";
     mqtt.sendACState("mode", mode);
@@ -138,6 +147,9 @@ void AVEX_HVAC_IR::sendStateMQTT() {
 
     String s_swing = swing ? "on" : "off";
     mqtt.sendACState("swing", s_swing);
+
+    String s_temp = String(getCurrentTemp(), 1);
+    mqtt.sendACState("current_temp", s_temp);
 }
 
 void AVEX_HVAC_IR::processPowerCmd(String &argument) {

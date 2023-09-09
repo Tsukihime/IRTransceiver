@@ -66,6 +66,7 @@ private:
     uint8_t h_mode;
     uint8_t fan_mode;
     uint8_t temperature;
+    float current_temp;
 
     IRsend &irsend;
     MQTT &mqtt;
@@ -79,6 +80,8 @@ private:
     void processSwingCmd(String &argument);
 
     void processFanspeedCmd(String &argument);
+
+    float getCurrentTemp();
 
 public:
     AVEX_HVAC_IR(IRsend &irsend, MQTT &mqtt);
@@ -102,6 +105,8 @@ public:
     void setTemperature(uint8_t temperature);
 
     uint8_t getTemperature();
+
+    void setCurrentTemp(float temperature);
 
     void processACCommand(String &command, String &argument);
 
