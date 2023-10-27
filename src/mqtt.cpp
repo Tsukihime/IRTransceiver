@@ -79,34 +79,47 @@ void MQTT::sendMQTTDiscoveryConfig() {
     String cmd_topic = Config::getMQTTTopicPrefix() + aircon_commands_prefix;
     String state_topic = Config::getMQTTTopicPrefix() + aircon_state_prefix;
     String discovery_topic = "homeassistant/climate/avex_aircon/config";
-    String message = R"(
-{
-"device": {
- "identifiers": [")" + Config::getDeviceId() + R"("],
- "name": "Infrared Transceiver",
- "manufacturer": "Tsukihime",
- "model": "ESP8266-IRTransceiver",
- "sw_version": "0.9"
-},
-"unique_id": "CH-AC07CHVITA-0417-P4-S0051",
-"icon": "mdi:air-conditioner",
-"name": "AVEX AC-07CH Vita",
-"modes": ["off", "auto", "cool", "heat", "dry", "fan_only"],
-"fan_modes": ["auto", "low", "medium", "high"],
-"swing_modes": ["on", "off"],
-"power_command_topic": ")"         + cmd_topic + R"(power",
-"mode_command_topic": ")"          + cmd_topic + R"(mode",
-"mode_state_topic": ")"          + state_topic + R"(mode",
-"temperature_command_topic": ")"   + cmd_topic + R"(temp",
-"temperature_state_topic": ")"   + state_topic + R"(temp",
-"fan_mode_command_topic": ")"      + cmd_topic + R"(fanspeed",
-"fan_mode_state_topic": ")"      + state_topic + R"(fanspeed",
-"swing_mode_command_topic": ")"    + cmd_topic + R"(swing",
-"swing_mode_state_topic": ")"    + state_topic + R"(swing",
-"current_temperature_topic": ")" + state_topic + R"(current_temp",
-"min_temp": 16, "max_temp": 32, "temp_step": 1, "retain": false
-})";
-    client.publish(discovery_topic.c_str(), message.c_str(), true);
+    String device_object = R"({
+        "identifiers": [")" + Config::getDeviceId() + R"("],
+        "name": "Infrared Transceiver",
+        "manufacturer": "Tsukihime",
+        "model": "ESP8266-IRTransceiver",
+        "sw_version": "0.9"
+        })";
+
+    String aircon_discovery_message = R"({
+        "device": )" + device_object + R"(,
+        "unique_id": "CH-AC07CHVITA-0417-P4-S0051",
+        "icon": "mdi:air-conditioner",
+        "name": "AVEX AC-07CH Vita",
+        "modes": ["off", "auto", "cool", "heat", "dry", "fan_only"],
+        "fan_modes": ["auto", "low", "medium", "high"],
+        "swing_modes": ["on", "off"],
+        "power_command_topic": ")" + cmd_topic + R"(power",
+        "mode_command_topic": ")" + cmd_topic + R"(mode",
+        "mode_state_topic": ")" + state_topic + R"(mode",
+        "temperature_command_topic": ")" + cmd_topic + R"(temp",
+        "temperature_state_topic": ")"   + state_topic + R"(temp",
+        "fan_mode_command_topic": ")"      + cmd_topic + R"(fanspeed",
+        "fan_mode_state_topic": ")"      + state_topic + R"(fanspeed",
+        "swing_mode_command_topic": ")"    + cmd_topic + R"(swing",
+        "swing_mode_state_topic": ")"    + state_topic + R"(swing",
+        "current_temperature_topic": ")" + state_topic + R"(current_temp",
+        "min_temp": 16, "max_temp": 32, "temp_step": 1, "retain": false
+        })";
+    client.publish(discovery_topic.c_str(), aircon_discovery_message.c_str(), true);
+	
+    discovery_topic = "homeassistant/sensor/irtransceiver_temp/config";
+    String thermometer_discovery_message = R"({
+        "device": )" + device_object + R"(,
+        "unique_id": "irtransceiver_temp",
+        "name": "Infrared Transceiver Thermometer",
+        "state_topic": ")" + state_topic + R"(current_temp",
+        "unit_of_measurement": "°C",
+        "icon": "hass:thermometer",
+        "value_template": "{{ value | round(1) }}"
+        })";
+    client.publish(discovery_topic.c_str(), thermometer_discovery_message.c_str(), true);
 }
 
 void MQTT::disconnect() {
