@@ -113,7 +113,7 @@ void MQTT::sendMQTTDiscoveryConfig() {
     String thermometer_discovery_message = R"({
         "device": )" + device_object + R"(,
         "unique_id": "irtransceiver_temp",
-        "name": "Infrared Transceiver Thermometer",
+        "name": "Temperature",
         "state_topic": ")" + state_topic + R"(current_temp",
         "unit_of_measurement": "°C",
         "icon": "hass:thermometer",

@@ -47,7 +47,7 @@ void initSensor() {
     }
 }
 
-float requestTemp() {
+void requestTemp() {
     sensors.requestTemperatures();
 }
 
@@ -63,7 +63,7 @@ float getCurrentTemp() {
 }
 
 void updateState() {
-    static uint8_t interval = 0;
+    static uint16_t interval = 0;
     switch (interval) {
         case 0: requestTemp();
                 break;
@@ -74,7 +74,7 @@ void updateState() {
 
         default :;
     }
-    if(++interval >= 60) interval = 0;
+    if(++interval >= 60 * 5) interval = 0;
 }
 
 void setup() {
