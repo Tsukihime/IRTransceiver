@@ -116,7 +116,7 @@ void MQTT::sendMQTTDiscoveryConfig() {
         "name": "Temperature",
         "state_topic": ")" + state_topic + R"(current_temp",
         "unit_of_measurement": "°C",
-        "icon": "hass:thermometer",
+        "device_class": "temperature",
         "value_template": "{{ value | round(1) }}"
         })";
     client.publish(discovery_topic.c_str(), thermometer_discovery_message.c_str(), true);
